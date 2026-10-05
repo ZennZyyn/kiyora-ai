@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5577a0">
+<title>Kiyora AI Chat</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦈</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#5577a0;--blue-d:#41608a;--soft:#e4ecf6;--card:#fff;--ink:#1c2a3d;--mute:#6b7d94;--bot:#e8eff8;--accent:#e8556d;
+--bg:linear-gradient(170deg,#5577a0 0%,#8aa6c8 45%,#eef3f9 100%);font-family:Poppins,system-ui,sans-serif}
+:root[data-theme=dark]{--blue:#7ea2d6;--blue-d:#5f86bd;--soft:#243a5c;--card:#16243a;--ink:#e6eef9;--mute:#93a6c0;--bot:#1f3354;--bg:linear-gradient(170deg,#0d1726 0%,#15263f 55%,#1d3150 100%)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg) fixed;color:var(--ink);overflow:hidden}
+.bubbles{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.bubbles i{position:absolute;bottom:-60px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:rgba(255,255,255,.12);animation:rise linear infinite}
+@keyframes rise{to{transform:translateY(-115vh)}}
+.app{position:relative;max-width:1120px;height:100dvh;margin:0 auto;padding:20px;display:grid;grid-template-columns:290px 1fr;gap:18px}
+.side{display:flex;flex-direction:column;gap:14px;min-height:0}
+.me{background:var(--blue);color:#fff;border-radius:28px;padding:24px 22px 0;text-align:center;position:relative;overflow:hidden;box-shadow:0 14px 30px rgba(30,55,95,.3)}
+.me .jp{font-size:12px;opacity:.85}
+.me h1{font-size:30px;font-weight:700;line-height:1.15;margin:2px 0 8px}
+.me p{font-size:13px;line-height:1.5;opacity:.92}
+.mascot{width:150px;height:150px;margin:6px auto 0;display:block;animation:bob 4s ease-in-out infinite;filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
+@keyframes bob{50%{transform:translateY(-8px) rotate(2deg)}}
+.wave{display:block;width:calc(100% + 44px);margin:14px -22px 0;height:34px}
+.w{background:var(--card);border-radius:22px;padding:14px 18px;box-shadow:0 8px 20px rgba(30,55,95,.14);border:2px solid var(--blue)}
+.w .t{font-size:30px;font-weight:700;color:var(--blue);line-height:1}.w .t sup{font-size:12px}
+.w .d{font-size:13px;margin-top:6px}
+.dt{background:var(--blue);color:#fff;border-radius:22px;padding:14px 18px;display:flex;align-items:center;gap:14px}
+.dt b{font-size:38px;font-weight:600;line-height:1}.dt span{font-size:14px;line-height:1.3}
+.chatcard{background:var(--card);border-radius:28px;display:flex;flex-direction:column;min-height:0;overflow:hidden;box-shadow:0 14px 34px rgba(30,55,95,.25);border:2px solid var(--blue);position:relative}
+.top{display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--blue);color:#fff}
+.top .mini{width:40px;height:40px;border-radius:50%;background:#fff;flex:none}
+.top b{display:block;font-size:15px;line-height:1.2}
+.top small{font-size:11.5px;opacity:.9;display:flex;align-items:center;gap:5px}
+.top small::before{content:"";width:8px;height:8px;border-radius:50%;background:#37d67a}
+.acts{margin-left:auto;display:flex;gap:6px}
+.ib{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;font-size:16px;cursor:pointer}
+.ib:hover{background:rgba(255,255,255,.3)}
+.pop{position:absolute;top:66px;right:14px;z-index:5;width:min(300px,calc(100% - 28px));background:var(--card);border:2px solid var(--blue);border-radius:18px;padding:14px;box-shadow:0 12px 28px rgba(0,0,0,.25);display:none;gap:6px}
+.pop.on{display:grid}
+.pop label{font-size:12px;font-weight:600;color:var(--blue)}.pop small{font-size:11px;color:var(--mute)}
+.pop input{font:inherit;font-size:14px;color:var(--ink);background:var(--soft);border:2px solid transparent;border-radius:12px;padding:8px 12px;width:100%}
+#log{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain;background:radial-gradient(circle at 90% 0,var(--soft),transparent 55%)}
+.empty{margin:auto;text-align:center;max-width:380px;display:grid;gap:10px;justify-items:center}
+.empty svg{width:110px;height:110px;animation:bob 4s ease-in-out infinite}
+.empty h2{font-size:22px;color:var(--blue)}.empty p{font-size:14px;color:var(--mute);line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
+.chip{font:inherit;font-size:13px;color:var(--blue);background:var(--soft);border:1.5px solid var(--blue);padding:7px 14px;border-radius:99px;cursor:pointer}
+.chip:hover{background:var(--blue);color:#fff}
+.row{display:flex;gap:9px;align-items:flex-end;max-width:min(88%,640px)}
+.row.user{align-self:flex-end;flex-direction:row-reverse}
+.row .mini{width:32px;height:32px;border-radius:50%;background:var(--soft);flex:none}
+.col{min-width:0}
+.bubble{padding:10px 15px;border-radius:20px;font-size:14.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.bot .bubble{background:var(--bot);border-bottom-left-radius:6px}
+.user .bubble{background:linear-gradient(135deg,var(--blue),var(--blue-d));color:#fff;border-bottom-right-radius:6px}
+.bubble code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:rgba(85,119,160,.18);padding:1px 6px;border-radius:6px}
+.bubble pre{white-space:pre;overflow-x:auto;background:#14233a;color:#dbe7f7;border-radius:12px;padding:12px;margin:8px 0;font-size:12.5px}
+.bubble pre code{background:none;padding:0;color:inherit}
+.meta{font-size:11px;color:var(--mute);margin:3px 6px 0;display:flex;gap:10px}
+.user .meta{justify-content:flex-end}
+.meta button{font:inherit;font-size:11px;color:var(--blue);background:none;border:0;cursor:pointer;padding:0}
+.err{align-self:center;background:#fde8ea;color:#9b2c3a;font-size:13px;padding:9px 16px;border-radius:14px;text-align:center}
+.dots{display:inline-flex;gap:4px;padding:5px 0}.dots i{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:j 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes j{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+form{display:flex;gap:10px;align-items:flex-end;padding:12px 14px;padding-bottom:max(12px,env(safe-area-inset-bottom));border-top:2px solid var(--soft);background:var(--card)}
+textarea{flex:1;font:inherit;font-size:16px;color:var(--ink);background:var(--soft);resize:none;border:2px solid transparent;border-radius:22px;padding:10px 16px;max-height:130px;line-height:1.4}
+textarea:focus{outline:none;border-color:var(--blue)}
+.send{width:46px;height:46px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none;box-shadow:0 6px 14px rgba(232,85,109,.4)}
+.send:disabled{opacity:.55;cursor:wait}
+:focus-visible{outline:3px solid #f5b942;outline-offset:2px}
+@media(max-width:900px){
+ .app{display:block;padding:0}.side{display:none}
+ .chatcard{height:100dvh;border-radius:0;border:0}
+ .row{max-width:92%}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="g" viewBox="0 0 100 100">
+ <circle cx="50" cy="54" r="44" fill="#5577a0"/>
+ <path d="M50 2 L36 24 L64 24Z" fill="#41608a"/>
+ <ellipse cx="50" cy="57" rx="36" ry="35" fill="#eaf0f7"/>
+ <ellipse cx="50" cy="63" rx="27" ry="24" fill="#ffeee0"/>
+ <path d="M14 56 Q16 22 50 20 Q84 22 86 56 Q74 38 50 42 Q26 38 14 56Z" fill="#eaf0f7"/>
+ <path d="M30 31 Q36 42 34 49 Q28 44 30 31Z M70 31 Q64 42 66 49 Q72 44 70 31Z" fill="#9cb7da"/>
+ <path d="M24 22 l6 9 l6 -9 l6 9 l6 -9 l6 9 l6 -9 l6 9 l6 -9 l6 9 l4 -7 Q50 6 24 22Z" fill="#fff"/>
+ <circle cx="39" cy="62" r="4.5" fill="#3b5b8c"/><circle cx="61" cy="62" r="4.5" fill="#3b5b8c"/>
+ <circle cx="40.5" cy="60.5" r="1.5" fill="#fff"/><circle cx="62.5" cy="60.5" r="1.5" fill="#fff"/>
+ <ellipse cx="32" cy="70" rx="4" ry="2.4" fill="#ffb3bd" opacity=".7"/><ellipse cx="68" cy="70" rx="4" ry="2.4" fill="#ffb3bd" opacity=".7"/>
+ <path d="M44 71 Q50 80 56 71Z" fill="#e8556d"/>
+</symbol></defs></svg>
+<div class="bubbles" id="bub"></div>
+
+<div class="app">
+  <aside class="side">
+    <section class="me">
+      <div class="jp">キヨラ・エーアイ</div>
+      <h1>Hi, Kiyora AI</h1>
+      <p>Teman ngobrol yang siap bantu jawab, jelasin, dan kasih ide.</p>
+      <svg class="mascot" viewBox="0 0 100 100" role="img" aria-label="Maskot hiu"><use href="#g"/></svg>
+      <svg class="wave" viewBox="0 0 300 34" preserveAspectRatio="none" aria-hidden="true"><path d="M0 18 Q37 0 75 18 T150 18 T225 18 T300 18 V34 H0Z" fill="var(--card)"/></svg>
+    </section>
+    <div class="w"><div class="t" id="time"></div><div class="d" id="day"></div></div>
+    <div class="dt"><b id="dn"></b><span id="dm"></span></div>
+  </aside>
+
+  <main class="chatcard">
+    <div class="top">
+      <svg class="mini" viewBox="0 0 100 100" aria-hidden="true"><use href="#g"/></svg>
+      <div><b>Kiyora AI</b><small>Online</small></div>
+      <div class="acts">
+        <button class="ib" id="theme" title="Ganti tema" aria-label="Ganti tema">🌙</button>
+        <button class="ib" id="gear" title="Pengaturan" aria-label="Pengaturan">⚙</button>
+        <button class="ib" id="clear" title="Hapus percakapan" aria-label="Hapus percakapan">🗑</button>
+      </div>
+    </div>
+    <div class="pop" id="pop">
+      <label for="base">Base URL (opsional)</label>
+      <input id="base" placeholder="kosong = server ini" spellcheck="false" autocapitalize="off">
+      <small>Biarkan kosong jika memakai proxy /api/chat di situs ini.</small>
+    </div>
+    <div id="log" role="log" aria-live="polite"></div>
+    <form id="f">
+      <textarea id="q" rows="1" placeholder="Tulis pesan…" aria-label="Pesan"></textarea>
+      <button class="send" id="s" aria-label="Kirim"><svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><path d="M3 20l18-8L3 4v6l11 2-11 2z"/></svg></button>
+    </form>
+  </main>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const log=$('log'),q=$('q'),s=$('s'),baseEl=$('base'),root=document.documentElement;
+let history=[],busy=false;
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+
+/* tema */
+const dark0=store.get('kiyora_theme')?store.get('kiyora_theme')==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+function setTheme(d){root.dataset.theme=d?'dark':'light';$('theme').textContent=d?'☀️':'🌙';store.set('kiyora_theme',d?'dark':'light')}
+setTheme(dark0);
+$('theme').onclick=()=>setTheme(root.dataset.theme!=='dark');
+
+/* pengaturan */
+baseEl.value=store.get('kiyora_base')||'';
+baseEl.onchange=()=>store.set('kiyora_base',baseEl.value.trim());
+$('gear').onclick=e=>{e.stopPropagation();$('pop').classList.toggle('on')};
+document.addEventListener('click',e=>{if(!e.target.closest('#pop'))$('pop').classList.remove('on')});
+
+/* gelembung latar */
+for(let i=0;i<9;i++){const b=document.createElement('i'),z=14+Math.random()*34;
+ b.style.cssText=`left:${Math.random()*100}%;width:${z}px;height:${z}px;animation-duration:${14+Math.random()*16}s;animation-delay:-${Math.random()*20}s`;$('bub').appendChild(b)}
+
+/* format pesan (aman: escape dulu) */
+const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function fmt(t){
+  return t.split('```').map((p,i)=>{
+    if(i%2)return '<pre><code>'+esc(p.replace(/^[\w+#-]*\n/,'').replace(/\n$/,''))+'</code></pre>';
+    return esc(p.replace(/^\n+|\n+$/g,'')).replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*([^*\n]+)\*\*/g,'<b>$1</b>');
+  }).join('');
+}
+const hhmm=()=>new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+const MINI='<svg class="mini" viewBox="0 0 100 100" aria-hidden="true"><use href="#g"/></svg>';
+
+function empty(){
+  log.innerHTML=`<div class="empty" id="empty"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#g"/></svg>
+  <h2>Halo, ada yang bisa dibantu?</h2><p>Tanya apa saja atau pilih salah satu ide di bawah.</p>
+  <div class="chips"><button class="chip">Jelaskan apa itu API</button><button class="chip">Ide proyek coding seru</button><button class="chip">Tips belajar cyber security</button></div></div>`;
+  log.querySelectorAll('.chip').forEach(c=>c.onclick=()=>send(c.textContent));
+}
+function add(role,text){
+  const e=$('empty');if(e)e.remove();
+  const r=document.createElement('div');r.className='row '+role;
+  r.innerHTML=(role==='bot'?MINI:'')+'<div class="col"><div class="bubble"></div><div class="meta"><span>'+hhmm()+'</span></div></div>';
+  const b=r.querySelector('.bubble');
+  if(role==='user')b.textContent=text;else if(text)setBot(r,text);
+  log.appendChild(r);log.scrollTop=log.scrollHeight;return r;
+}
+function setBot(r,text){
+  r.querySelector('.bubble').innerHTML=fmt(text);
+  const m=r.querySelector('.meta'),c=document.createElement('button');c.textContent='Salin';
+  c.onclick=()=>{navigator.clipboard?.writeText(text).then(()=>{c.textContent='Tersalin';setTimeout(()=>c.textContent='Salin',1500)}).catch(()=>{})};
+  m.appendChild(c);
+}
+function err(m){const d=document.createElement('div');d.className='err';d.textContent=m;log.appendChild(d);log.scrollTop=log.scrollHeight}
+
+async function ask(h){
+  const base=baseEl.value.trim().replace(/\/+$/,'');
+  const res=await fetch(base+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({history:h}),signal:AbortSignal.timeout(60000)});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data?.error||'HTTP '+res.status);
+  if(!data?.text)throw new Error('respon kosong');
+  return data.text;
+}
+async function send(text){
+  text=text.trim();if(!text||busy)return;
+  busy=true;s.disabled=true;q.value='';q.style.height='auto';
+  history.push({role:'user',content:text});add('user',text);
+  const r=add('bot','');r.querySelector('.bubble').innerHTML='<span class="dots"><i></i><i></i><i></i></span>';
+  try{const a=await ask(history);history.push({role:'assistant',content:a});setBot(r,a)}
+  catch(e){
+    history.pop();r.remove();
+    err(e.name==='TimeoutError'?'Waktu habis (60 detik). Coba kirim lagi.':e instanceof TypeError?'Tidak bisa terhubung ke server. Cek koneksi atau Base URL.':e.message);
+  }
+  busy=false;s.disabled=false;if(matchMedia('(hover:hover)').matches)q.focus();log.scrollTop=log.scrollHeight;
+}
+$('f').onsubmit=e=>{e.preventDefault();send(q.value)};
+q.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&matchMedia('(hover:hover)').matches){e.preventDefault();send(q.value)}};
+q.oninput=()=>{q.style.height='auto';q.style.height=Math.min(q.scrollHeight,130)+'px'};
+$('clear').onclick=()=>{history=[];empty()};
+
+function tick(){
+  const n=new Date(),p=n.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}).split(' ');
+  $('time').innerHTML=p[0]+'<sup>'+(p[1]||'')+'</sup>';
+  $('day').textContent=n.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  $('dn').textContent=n.getDate();
+  $('dm').innerHTML=n.toLocaleDateString('id-ID',{weekday:'long'})+'<br>'+n.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+}
+tick();setInterval(tick,15000);empty();
+</script>
+</body>
+</html>
